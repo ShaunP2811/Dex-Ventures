@@ -1,0 +1,24 @@
+# dependencies
+/node_modules
+
+# next.js
+/.next
+/out
+
+# production
+/build
+
+# env
+.env
+.env.local
+.env*.local
+
+# misc
+*.tsbuildinfo
+next-env.d.ts
+.DS_Store
+coverage
+npm-debug.log*
+
+# local-only architecture viewer (canonical blueprint is ARCHITECTURE.md)
+architecture.html
