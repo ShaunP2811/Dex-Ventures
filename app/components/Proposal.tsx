@@ -12,9 +12,13 @@ import type {
   Keyword,
   PlatformTargeting,
   Proposal as ProposalT,
-  TargetingValue,
 } from "@/lib/types";
-import { formatMoney, formatPct, titleizeField } from "@/lib/format";
+import {
+  formatMoney,
+  formatPct,
+  titleizeField,
+  valueToString,
+} from "@/lib/format";
 import {
   ChatIcon,
   CheckCircleIcon,
@@ -42,7 +46,7 @@ const fmt2 = (n: number) =>
   });
 const fmtInt = (n: number) => n.toLocaleString("en-US");
 
-function isKeywordArray(v: TargetingValue): v is Keyword[] {
+function isKeywordArray(v: unknown): v is Keyword[] {
   return (
     Array.isArray(v) &&
     v.length > 0 &&
@@ -55,15 +59,7 @@ function isKeywordArray(v: TargetingValue): v is Keyword[] {
 function platformToText(channel: string, t: PlatformTargeting): string {
   const lines = [channel];
   for (const [key, val] of Object.entries(t)) {
-    let rendered: string;
-    if (isKeywordArray(val)) {
-      rendered = val.map((k) => `${k.term} [${k.match}]`).join(", ");
-    } else if (Array.isArray(val)) {
-      rendered = val.join(", ");
-    } else {
-      rendered = String(val);
-    }
-    lines.push(`${titleizeField(key)}: ${rendered}`);
+    lines.push(`${titleizeField(key)}: ${valueToString(val)}`);
   }
   return lines.join("\n");
 }
@@ -230,7 +226,7 @@ function buildMarkdown(p: ProposalT): string {
   return L.join("\n");
 }
 
-function TargetingValueView({ value }: { value: TargetingValue }) {
+function TargetingValueView({ value }: { value: unknown }) {
   if (isKeywordArray(value)) {
     return (
       <div className="chips">
@@ -248,13 +244,24 @@ function TargetingValueView({ value }: { value: TargetingValue }) {
       <div className="chips">
         {value.map((v, i) => (
           <span className="chip" key={i}>
-            {v}
+            {v !== null && typeof v === "object" ? valueToString(v) : String(v)}
           </span>
         ))}
       </div>
     );
   }
-  return <span className="kv-val">{value}</span>;
+  if (value !== null && typeof value === "object") {
+    return (
+      <div className="chips">
+        {Object.entries(value as Record<string, unknown>).map(([k, v], i) => (
+          <span className="chip" key={i}>
+            {titleizeField(k)}: {valueToString(v)}
+          </span>
+        ))}
+      </div>
+    );
+  }
+  return <span className="kv-val">{String(value)}</span>;
 }
 
 export default function Proposal({ proposal }: { proposal: ProposalT }) {
