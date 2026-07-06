@@ -188,4 +188,4 @@ app/
 | Backend workflow blueprint | this repo + [ARCHITECTURE.md](ARCHITECTURE.md) diagrams |
 | MVP (deployed app) | `app/` — Next.js, `vercel deploy` |
 | Sample output | `SAMPLE_PROPOSAL.md`, or the app's "Download proposal (.md)" |
-| Walkthrough (optional) | [WALKTHROUGH.md](WALKTHROUGH.md) — written; or a short Loom |
+| Walkthrough (optional) | written product documentation, or a short Loom |
