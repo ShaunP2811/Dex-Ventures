@@ -280,6 +280,7 @@ function buildPrompt(
   objective: Objective,
   isB2b: boolean,
   industry?: string,
+  refinement?: string,
 ): string {
   const schemaLines = activeChannels
     .map((c) => `  "${c}": { ${PLATFORM_SCHEMA[c]} }`)
@@ -288,11 +289,14 @@ function buildPrompt(
   const industryLine = industry?.trim()
     ? `Industry / vertical: ${industry.trim()}\n`
     : "";
+  const refineLine = refinement?.trim()
+    ? `\nRefinement request from the client (apply it to the targeting): ${refinement.trim()}`
+    : "";
   return `You are a paid-media targeting specialist. Convert the campaign's free-text audience guidance into structured, PLATFORM-READY targeting that a junior media buyer could paste directly into each ad manager.
 
 Campaign objective: ${objective}
 Segment: ${segment}
-${industryLine}Audience guidance (free text): "${guidance}"
+${industryLine}Audience guidance (free text): "${guidance}"${refineLine}
 
 Return targeting ONLY for these channels: ${activeChannels.join(", ")}
 
@@ -378,6 +382,7 @@ export async function generateTargetingSmart(
   isB2b: boolean,
   industry?: string,
   market: MarketCode = "MY",
+  refinement?: string,
 ): Promise<TargetingResult> {
   if (activeChannels.length === 0) {
     return { source: "none", targeting: {} };
@@ -388,7 +393,7 @@ export async function generateTargetingSmart(
   }
 
   try {
-    const prompt = buildPrompt(activeChannels, guidance, objective, isB2b, industry);
+    const prompt = buildPrompt(activeChannels, guidance, objective, isB2b, industry, refinement);
     const raw = await callLLM(prompt);
     const filtered = filterToActive(parseJson(raw), activeChannels);
     if (Object.keys(filtered).length === 0) {

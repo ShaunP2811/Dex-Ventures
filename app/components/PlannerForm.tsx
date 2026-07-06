@@ -53,6 +53,7 @@ export default function PlannerForm({
   const [channels, setChannels] = useState<Channel[]>(() =>
     activeChannelsFor("Conversion", false),
   );
+  const [refinement, setRefinement] = useState("");
 
   const currency = MARKETS[market].currency;
   const budgetNum = Number(budget);
@@ -80,6 +81,7 @@ export default function PlannerForm({
     setMonths(EXAMPLE.months);
     setGuidance(EXAMPLE.guidance);
     setChannels(activeChannelsFor(EXAMPLE.objective, EXAMPLE.isB2b));
+    setRefinement("");
     setStep(STEPS.length - 1);
   }
 
@@ -97,6 +99,7 @@ export default function PlannerForm({
       website: website.trim() || undefined,
       guidance: guidance.trim(),
       channels,
+      refinement: refinement.trim() || undefined,
     });
   }
 
@@ -395,7 +398,8 @@ export default function PlannerForm({
 
         {/* STEP 4 — REVIEW */}
         {step === 3 && (
-          <div className="review-list">
+          <>
+            <div className="review-list">
             <div>
               <span>Client</span>
               <b>{client.trim() || "—"}</b>
@@ -437,7 +441,27 @@ export default function PlannerForm({
                 Add a client name and a budget (step 1) to generate.
               </p>
             )}
-          </div>
+            </div>
+            <div className="field" style={{ marginTop: 16 }}>
+              <label className="label" htmlFor="refinement">
+                {hasPlan
+                  ? "Refine — tell the AI what to change"
+                  : "Extra creative direction"}{" "}
+                (optional)
+              </label>
+              <textarea
+                id="refinement"
+                className="textarea"
+                value={refinement}
+                onChange={(e) => setRefinement(e.target.value)}
+                placeholder="e.g. punchier TikTok copy, lean more premium, emphasise 24-hour access, target parents"
+              />
+              <p className="hint">
+                Steers the AI targeting &amp; ad copy only — budget and channels
+                stay on the controls above.
+              </p>
+            </div>
+          </>
         )}
 
         <div className="wizard-nav">

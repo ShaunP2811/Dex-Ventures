@@ -90,6 +90,7 @@ export interface Proposal {
   floorNotes: string[];
   targetingSource: string;
   targeting: Targeting;
+  refinement?: string;
 }
 
 // --- Input (form -> API) -----------------------------------------------------
@@ -105,4 +106,5 @@ export interface PlanInput {
   industry?: string;
   website?: string;
   channels?: Channel[]; // explicit channel selection; omit for the objective default
+  refinement?: string; // free-text direction for the AI layers (never the numbers)
 }

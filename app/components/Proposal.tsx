@@ -291,6 +291,7 @@ export default function Proposal({
     floorNotes,
     targeting,
     targetingSource,
+    refinement,
   } = proposal;
 
   const [includeCreatives, setIncludeCreatives] = useState(true);
@@ -664,6 +665,14 @@ export default function Proposal({
           </div>
         </div>
         <div className="card-body">
+          {refinement && (
+            <div className="note" style={{ marginBottom: 14 }}>
+              <InfoIcon size={16} />
+              <span>
+                <strong>Refinement applied:</strong> {refinement}
+              </span>
+            </div>
+          )}
           {(Object.entries(targeting) as [Channel, PlatformTargeting][]).map(
             ([channel, t]) => (
               <div className="platform" key={channel}>

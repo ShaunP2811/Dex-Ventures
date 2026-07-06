@@ -65,6 +65,7 @@ function buildAllocationSummary(
 export async function assembleProposal(input: PlanInput): Promise<Proposal> {
   const { client, objective, totalBudget, months, isB2b, guidance, industry } =
     input;
+  const refinement = input.refinement?.trim() || undefined;
   const market = MARKETS[input.market ?? DEFAULT_MARKET];
 
   const plan = buildPlan(
@@ -85,6 +86,7 @@ export async function assembleProposal(input: PlanInput): Promise<Proposal> {
     isB2b,
     industry,
     market.code,
+    refinement,
   );
 
   const reasons = REASON_MAP[objective];
@@ -157,5 +159,6 @@ export async function assembleProposal(input: PlanInput): Promise<Proposal> {
     floorNotes: plan.allocation.notes,
     targetingSource: source,
     targeting,
+    refinement,
   };
 }

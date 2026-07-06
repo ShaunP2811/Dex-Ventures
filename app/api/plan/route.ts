@@ -49,6 +49,7 @@ export async function POST(req: Request) {
   const channels = Array.isArray(b.channels)
     ? b.channels.filter((c): c is Channel => ALL_CHANNELS.includes(c as Channel))
     : undefined;
+  const refinement = typeof b.refinement === "string" ? b.refinement : undefined;
 
   if (!client) return bad("Client name is required.");
   if (!OBJECTIVES.includes(objective))
@@ -87,6 +88,7 @@ export async function POST(req: Request) {
     industry,
     website,
     channels,
+    refinement,
   };
 
   try {
