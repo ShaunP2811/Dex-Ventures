@@ -35,12 +35,25 @@ export function valueToString(v: unknown): string {
         }
         return valueToString(x);
       })
+      .filter((s) => s.trim() !== "")
       .join(", ");
   }
   if (typeof v === "object") {
     return Object.entries(v as Record<string, unknown>)
-      .map(([k, val]) => `${titleizeField(k)}: ${valueToString(val)}`)
+      .map(([k, val]) => {
+        const s = valueToString(val);
+        return s === "" ? "" : `${titleizeField(k)}: ${s}`;
+      })
+      .filter((s) => s !== "")
       .join("; ");
   }
   return String(v);
+}
+
+/** True when a targeting value is worth rendering (not null/empty). */
+export function hasValue(v: unknown): boolean {
+  if (v === null || v === undefined || v === "") return false;
+  if (Array.isArray(v)) return valueToString(v) !== "";
+  if (typeof v === "object") return valueToString(v) !== "";
+  return true;
 }

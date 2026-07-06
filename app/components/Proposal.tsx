@@ -16,6 +16,7 @@ import type {
 import {
   formatMoney,
   formatPct,
+  hasValue,
   titleizeField,
   valueToString,
 } from "@/lib/format";
@@ -59,7 +60,8 @@ function isKeywordArray(v: unknown): v is Keyword[] {
 function platformToText(channel: string, t: PlatformTargeting): string {
   const lines = [channel];
   for (const [key, val] of Object.entries(t)) {
-    lines.push(`${titleizeField(key)}: ${valueToString(val)}`);
+    const s = valueToString(val);
+    if (s !== "") lines.push(`${titleizeField(key)}: ${s}`);
   }
   return lines.join("\n");
 }
@@ -240,20 +242,24 @@ function TargetingValueView({ value }: { value: unknown }) {
     );
   }
   if (Array.isArray(value)) {
+    const items = value.filter((v) => hasValue(v));
     return (
       <div className="chips">
-        {value.map((v, i) => (
+        {items.map((v, i) => (
           <span className="chip" key={i}>
-            {v !== null && typeof v === "object" ? valueToString(v) : String(v)}
+            {typeof v === "object" && v !== null ? valueToString(v) : String(v)}
           </span>
         ))}
       </div>
     );
   }
   if (value !== null && typeof value === "object") {
+    const entries = Object.entries(value as Record<string, unknown>).filter(
+      ([, v]) => hasValue(v),
+    );
     return (
       <div className="chips">
-        {Object.entries(value as Record<string, unknown>).map(([k, v], i) => (
+        {entries.map(([k, v], i) => (
           <span className="chip" key={i}>
             {titleizeField(k)}: {valueToString(v)}
           </span>
@@ -687,12 +693,14 @@ export default function Proposal({
                   <CopyButton text={platformToText(channel, t)} />
                 </div>
                 <div className="kv">
-                  {Object.entries(t).map(([key, val]) => (
-                    <div className="kv-row" key={key}>
-                      <span className="kv-key">{titleizeField(key)}</span>
-                      <TargetingValueView value={val} />
-                    </div>
-                  ))}
+                  {Object.entries(t)
+                    .filter(([, val]) => hasValue(val))
+                    .map(([key, val]) => (
+                      <div className="kv-row" key={key}>
+                        <span className="kv-key">{titleizeField(key)}</span>
+                        <TargetingValueView value={val} />
+                      </div>
+                    ))}
                 </div>
               </div>
             ),
