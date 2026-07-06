@@ -104,5 +104,5 @@ export interface PlanInput {
   market?: MarketCode;
   industry?: string;
   website?: string;
-  excludedChannels?: Channel[];
+  channels?: Channel[]; // explicit channel selection; omit for the objective default
 }

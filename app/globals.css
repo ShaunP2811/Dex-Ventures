@@ -1320,6 +1320,67 @@ body {
   border: 0;
 }
 
+/* results bar (New plan) */
+.results-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 14px;
+}
+
+/* saved plans history */
+.saved-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.saved-head .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.saved-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.saved-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+}
+.saved-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.saved-client {
+  font-weight: 650;
+  font-size: 14.5px;
+}
+.saved-sub {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+.saved-date {
+  font-size: 11.5px;
+  color: var(--text-subtle);
+}
+.saved-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
 .print-opt {
   display: inline-flex;
   align-items: center;

@@ -47,9 +47,10 @@ describe("assembleProposal", () => {
     }
   });
 
-  it("excludes a channel when asked and still summarises the allocation", async () => {
-    const p = await assembleProposal({ ...A, excludedChannels: ["Google"] });
-    expect(p.allocation.map((a) => a.channel)).not.toContain("Google");
+  it("respects an explicit channel selection and still summarises it", async () => {
+    const p = await assembleProposal({ ...A, channels: ["Meta", "TikTok"] });
+    const chs = p.allocation.map((a) => a.channel).sort();
+    expect(chs).toEqual(["Meta", "TikTok"]);
     expect(p.allocationSummary.length).toBeGreaterThan(0);
   });
 

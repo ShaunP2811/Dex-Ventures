@@ -16,6 +16,7 @@ import {
   BASE_MATRIX_B2C,
   BASE_MATRIX_B2B,
   CHANNEL_BENCHMARKS,
+  FORCED_CHANNEL_WEIGHT,
   MARKETS,
   DEFAULT_MARKET,
   type Market,
@@ -173,16 +174,12 @@ function baseWeights(objective: Objective, isB2b: boolean): Record<string, numbe
  *    original weight). Iterates until stable — concentrates a small budget on the
  *    1–2 channels that can actually perform.
  */
-/** Channels that carry positive weight for an objective/segment (minus any the
- *  user chose to exclude). Exported so the API can validate customisations. */
+/** The channels an objective/segment uses by default (positive base weight). */
 export function activeChannelsFor(
   objective: Objective,
   isB2b: boolean,
-  excluded: Channel[] = [],
 ): Channel[] {
-  return (Object.keys(baseWeights(objective, isB2b)) as Channel[]).filter(
-    (c) => !excluded.includes(c),
-  );
+  return Object.keys(baseWeights(objective, isB2b)) as Channel[];
 }
 
 export function allocate(
@@ -190,10 +187,18 @@ export function allocate(
   objective: Objective,
   isB2b: boolean,
   months: number,
-  excluded: Channel[] = [],
+  included?: Channel[],
 ): Allocation {
-  const weights = baseWeights(objective, isB2b);
-  for (const c of excluded) delete weights[c];
+  const row: WeightRow = (isB2b ? BASE_MATRIX_B2B : BASE_MATRIX_B2C)[objective];
+  // Default to the objective's native channels; otherwise use exactly what the
+  // user selected, giving off-matrix picks a balanced minority weight.
+  const channels =
+    included ?? (Object.keys(row) as Channel[]).filter((c) => row[c] > 0);
+  const weights: Record<string, number> = {};
+  for (const ch of channels) {
+    const w = row[ch as Channel] ?? 0;
+    weights[ch] = w > 0 ? w : FORCED_CHANNEL_WEIGHT;
+  }
   const floor = MIN_SPEND_PER_MONTH * months;
   const dropped: string[] = [];
   const notes: string[] = [];
@@ -265,10 +270,10 @@ export function buildPlan(
   months: number,
   isB2b: boolean,
   market: Market = MARKETS[DEFAULT_MARKET],
-  excluded: Channel[] = [],
+  included?: Channel[],
 ): MediaPlan {
   const fees = computeFees(totalBudget, months, market);
-  const allocation = allocate(fees.mediaSpend, objective, isB2b, months, excluded);
+  const allocation = allocate(fees.mediaSpend, objective, isB2b, months, included);
   return { client, objective, isB2b, months, fees, allocation };
 }
 

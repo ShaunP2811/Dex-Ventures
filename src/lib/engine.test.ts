@@ -344,24 +344,43 @@ describe("Markets", () => {
   });
 });
 
-describe("Channel exclusion (customisation)", () => {
-  it("activeChannelsFor lists positive-weight channels minus excluded", () => {
+describe("Channel selection (customisation)", () => {
+  it("activeChannelsFor lists the objective's default channels", () => {
     expect(activeChannelsFor("Conversion", false).sort()).toEqual([
       "Google",
       "Meta",
       "TikTok",
     ]);
-    expect(activeChannelsFor("Conversion", false, ["TikTok"]).sort()).toEqual([
+    expect(activeChannelsFor("Conversion", true).sort()).toEqual([
       "Google",
+      "LinkedIn",
       "Meta",
     ]);
   });
 
-  it("allocate drops an excluded channel and redistributes to survivors", () => {
+  it("allocates to exactly the included channels and reconciles", () => {
     const f = computeFees(50_000, 2);
-    const a = allocate(f.mediaSpend, "Conversion", false, 2, ["TikTok"]);
+    const a = allocate(f.mediaSpend, "Conversion", false, 2, ["Google", "Meta"]);
     expect(Object.keys(a.perChannel).sort()).toEqual(["Google", "Meta"]);
     close(sum(Object.values(a.perChannel)), f.mediaSpend, EPS);
     expect(round2(sum(Object.values(a.percentages)))).toBe(1);
+  });
+
+  it("gives a user-added off-matrix channel a balanced share (LinkedIn on B2C)", () => {
+    const a = allocate(500_000, "Conversion", false, 1, [
+      "Meta",
+      "Google",
+      "TikTok",
+      "LinkedIn",
+    ]);
+    expect(Object.keys(a.perChannel).sort()).toEqual([
+      "Google",
+      "LinkedIn",
+      "Meta",
+      "TikTok",
+    ]);
+    // Meta .40 / Google .45 / TikTok .15 / LinkedIn forced .20 → sum 1.20
+    expect(a.percentages.LinkedIn).toBeCloseTo(0.2 / 1.2, 6);
+    close(sum(Object.values(a.perChannel)), 500_000, EPS);
   });
 });

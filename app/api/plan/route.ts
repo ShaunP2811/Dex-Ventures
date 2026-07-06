@@ -15,7 +15,7 @@ import {
   type MarketCode,
   type Objective,
 } from "@/lib/config";
-import { activeChannelsFor, minViableBudget } from "@/lib/engine";
+import { minViableBudget } from "@/lib/engine";
 import { assembleProposal } from "@/lib/proposal";
 import type { PlanInput } from "@/lib/types";
 
@@ -46,11 +46,9 @@ export async function POST(req: Request) {
   const market = MARKETS[marketCode];
   const industry = typeof b.industry === "string" ? b.industry : undefined;
   const website = typeof b.website === "string" ? b.website : undefined;
-  const excludedChannels = Array.isArray(b.excludedChannels)
-    ? b.excludedChannels.filter((c): c is Channel =>
-        ALL_CHANNELS.includes(c as Channel),
-      )
-    : [];
+  const channels = Array.isArray(b.channels)
+    ? b.channels.filter((c): c is Channel => ALL_CHANNELS.includes(c as Channel))
+    : undefined;
 
   if (!client) return bad("Client name is required.");
   if (!OBJECTIVES.includes(objective))
@@ -60,8 +58,8 @@ export async function POST(req: Request) {
   if (!Number.isInteger(months) || months < 1 || months > 24)
     return bad("Duration must be a whole number of months between 1 and 24.");
 
-  if (activeChannelsFor(objective, isB2b, excludedChannels).length === 0)
-    return bad("Include at least one channel for this objective and segment.");
+  if (channels !== undefined && channels.length === 0)
+    return bad("Include at least one channel.");
 
   const minViable = minViableBudget(months, market.taxRate);
   if (totalBudget < minViable) {
@@ -88,7 +86,7 @@ export async function POST(req: Request) {
     market: marketCode,
     industry,
     website,
-    excludedChannels,
+    channels,
   };
 
   try {

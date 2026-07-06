@@ -74,7 +74,7 @@ export async function assembleProposal(input: PlanInput): Promise<Proposal> {
     months,
     isB2b,
     market,
-    input.excludedChannels ?? [],
+    input.channels,
   );
 
   const activeChannels = Object.keys(plan.allocation.perChannel) as Channel[];

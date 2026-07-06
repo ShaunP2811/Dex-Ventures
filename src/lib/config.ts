@@ -89,6 +89,11 @@ export const CHANNEL_PRIORITY: Record<Channel, number> = {
   LinkedIn: 1,
 };
 
+// Weight given to a channel the user explicitly adds that the chosen objective
+// doesn't natively use (base weight 0) — e.g. LinkedIn on a B2C plan. It gets a
+// balanced minority share rather than being ignored.
+export const FORCED_CHANNEL_WEIGHT = 0.2;
+
 // ---------------------------------------------------------------------------
 // DELIVERY BENCHMARKS  (illustrative — deterministic, never from the LLM)
 // ---------------------------------------------------------------------------

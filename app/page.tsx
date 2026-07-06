@@ -5,12 +5,16 @@ import type { PlanInput, Proposal as ProposalT } from "@/lib/types";
 import PlannerForm from "./components/PlannerForm";
 import Proposal from "./components/Proposal";
 import ThemeToggle from "./components/ThemeToggle";
+import SavedPlans, { type SavedPlan } from "./components/SavedPlans";
 import {
   AlertIcon,
   ChartIcon,
   CheckCircleIcon,
+  PlusIcon,
   PrismMark,
 } from "./components/icons";
+
+const HISTORY_KEY = "prism.savedPlans.v1";
 
 function EmptyState() {
   return (
@@ -40,8 +44,8 @@ function EmptyState() {
         <li>
           <CheckCircleIcon size={16} />
           <span>
-            <strong>Paste-ready targeting</strong> — per-platform, in each ad
-            manager’s own taxonomy.
+            <strong>Paste-ready targeting</strong> + on-brand ad creative, per
+            platform.
           </span>
         </li>
       </ul>
@@ -71,7 +75,18 @@ export default function Page() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState("");
+  const [saved, setSaved] = useState<SavedPlan[]>([]);
+  const [formKey, setFormKey] = useState(0);
   const resultRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(HISTORY_KEY);
+      if (raw) setSaved(JSON.parse(raw));
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   useEffect(() => {
     if (proposal) {
@@ -79,6 +94,40 @@ export default function Page() {
       resultRef.current?.focus();
     }
   }, [proposal]);
+
+  function persist(next: SavedPlan[]) {
+    setSaved(next);
+    try {
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
+    } catch {
+      /* ignore */
+    }
+  }
+
+  // Called when the current proposal is downloaded — store it in history.
+  function handleDownloaded(markdown: string) {
+    if (!proposal) return;
+    const entry: SavedPlan = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      client: proposal.client,
+      objective: proposal.objective,
+      segment: proposal.segment,
+      months: proposal.months,
+      totalBudget: proposal.totalBudget,
+      currency: proposal.currency,
+      savedAt: Date.now(),
+      markdown,
+      proposal,
+    };
+    persist([entry, ...saved].slice(0, 20));
+  }
+
+  function newPlan() {
+    setProposal(null);
+    setError(null);
+    setStatus("Started a new media plan.");
+    setFormKey((k) => k + 1); // remount the form to clear it
+  }
 
   async function generate(input: PlanInput) {
     setLoading(true);
@@ -123,7 +172,7 @@ export default function Page() {
 
       <main className="layout">
         <aside className="panel">
-          <PlannerForm onSubmit={generate} loading={loading} />
+          <PlannerForm key={formKey} onSubmit={generate} loading={loading} />
         </aside>
 
         <div
@@ -144,10 +193,31 @@ export default function Page() {
               </div>
             </div>
           ) : proposal ? (
-            <Proposal proposal={proposal} />
+            <>
+              <div className="results-bar no-print">
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  onClick={newPlan}
+                >
+                  <PlusIcon size={15} /> New media plan
+                </button>
+              </div>
+              <Proposal proposal={proposal} onDownload={handleDownloaded} />
+            </>
           ) : (
             <EmptyState />
           )}
+
+          <SavedPlans
+            plans={saved}
+            onView={(p) => {
+              setError(null);
+              setProposal(p);
+            }}
+            onRemove={(id) => persist(saved.filter((s) => s.id !== id))}
+            onClear={() => persist([])}
+          />
         </div>
       </main>
 

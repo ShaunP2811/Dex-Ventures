@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import {
   MARKETS,
   DEFAULT_MARKET,
@@ -60,14 +60,20 @@ export default function PlannerForm({
   const [isB2b, setIsB2b] = useState(false);
   const [months, setMonths] = useState(2);
   const [guidance, setGuidance] = useState("");
-  const [excluded, setExcluded] = useState<Channel[]>([]);
+  const [channels, setChannels] = useState<Channel[]>(() =>
+    activeChannelsFor("Conversion", false),
+  );
 
   const currency = MARKETS[market].currency;
-  // channels the chosen objective + segment actually use (positive base weight)
-  const available = activeChannelsFor(objective, isB2b);
+
+  // When objective or segment changes, reset the channel mix to that
+  // combination's defaults — the user can then add or remove any channel.
+  useEffect(() => {
+    setChannels(activeChannelsFor(objective, isB2b));
+  }, [objective, isB2b]);
 
   const toggleChannel = (ch: Channel, on: boolean) =>
-    setExcluded((x) => (on ? [...x, ch] : x.filter((c) => c !== ch)));
+    setChannels((x) => (on ? x.filter((c) => c !== ch) : [...x, ch]));
 
   function loadExample() {
     setClient(EXAMPLE.client);
@@ -79,6 +85,7 @@ export default function PlannerForm({
     setIsB2b(EXAMPLE.isB2b);
     setMonths(EXAMPLE.months);
     setGuidance(EXAMPLE.guidance);
+    setChannels(activeChannelsFor(EXAMPLE.objective, EXAMPLE.isB2b));
   }
 
   function handleSubmit(e: FormEvent) {
@@ -93,7 +100,7 @@ export default function PlannerForm({
       industry: industry.trim() || undefined,
       website: website.trim() || undefined,
       guidance: guidance.trim(),
-      excludedChannels: excluded,
+      channels,
     });
   }
 
@@ -301,22 +308,13 @@ export default function PlannerForm({
           <span className="label">Channels</span>
           <div className="chips-row" role="group" aria-label="Channels">
             {CHANNELS.map((ch) => {
-              const isAvailable = available.includes(ch);
-              const on = isAvailable && !excluded.includes(ch);
+              const on = channels.includes(ch);
               return (
                 <button
                   key={ch}
                   type="button"
-                  className={`chip-toggle${on ? " on" : ""}${
-                    isAvailable ? "" : " na"
-                  }`}
+                  className={`chip-toggle${on ? " on" : ""}`}
                   aria-pressed={on}
-                  disabled={!isAvailable}
-                  title={
-                    isAvailable
-                      ? undefined
-                      : `${ch} isn't used for ${isB2b ? "B2B" : "B2C"} ${objective}`
-                  }
                   onClick={() => toggleChannel(ch, on)}
                 >
                   {ch}
@@ -325,9 +323,9 @@ export default function PlannerForm({
             })}
           </div>
           <p className="hint">
-            Only channels used for this objective &amp; segment are available
-            (e.g. LinkedIn is B2B-only, TikTok drops out of B2B Conversion).
-            Toggle one off to exclude it — its budget redistributes to the rest.
+            Defaults come from the objective &amp; segment — add or remove any
+            channel. One you add (e.g. LinkedIn on a B2C plan) gets a balanced
+            share; removing one redistributes its budget to the rest.
           </p>
         </div>
 

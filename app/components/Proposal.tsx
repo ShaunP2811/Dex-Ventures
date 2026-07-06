@@ -264,7 +264,13 @@ function TargetingValueView({ value }: { value: unknown }) {
   return <span className="kv-val">{String(value)}</span>;
 }
 
-export default function Proposal({ proposal }: { proposal: ProposalT }) {
+export default function Proposal({
+  proposal,
+  onDownload,
+}: {
+  proposal: ProposalT;
+  onDownload?: (markdown: string) => void;
+}) {
   const {
     client,
     objective,
@@ -292,15 +298,15 @@ export default function Proposal({ proposal }: { proposal: ProposalT }) {
   const money = (n: number) => formatMoney(n, currency);
 
   function downloadMarkdown() {
-    const blob = new Blob([buildMarkdown(proposal)], {
-      type: "text/markdown;charset=utf-8",
-    });
+    const md = buildMarkdown(proposal);
+    const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
     a.download = `${client.replace(/\s+/g, "-").toLowerCase()}-media-plan.md`;
     a.click();
     URL.revokeObjectURL(url);
+    onDownload?.(md);
   }
 
   const allTargetingText = (
