@@ -45,49 +45,83 @@ function clamp(s: string, max: number): string {
   return s.length <= max ? s : `${s.slice(0, max - 1).trimEnd()}…`;
 }
 
+interface Copy {
+  headline: string;
+  primaryText: string;
+}
+
+// Each platform has its own voice, tuned again by objective. See the
+// ad-caption-writing skill for the full per-platform strategy.
+//  Meta     — warm, benefit-led, social
+//  Google   — search-intent, direct, answers the query
+//  TikTok   — native, casual, hook-first
+//  LinkedIn — professional, credibility + outcomes (B2B)
 function copyFor(
   channel: Channel,
   objective: Objective,
   client: string,
   topic: string,
-  isB2b: boolean,
-): { headline: string; primaryText: string } {
-  // Channel tone on top of an objective-driven base.
-  if (channel === "TikTok") {
-    return {
-      headline: `${client} — ${topic}, sorted`,
-      primaryText: `POV: you just found ${client}. ${topic} made easy — tap to see how.`,
-    };
-  }
-  if (channel === "Google") {
-    return {
-      headline: `${client} · ${topic}`,
-      primaryText: `Searching for ${topic}? ${client} delivers. ${CTA[objective][isB2b ? "b2b" : "b2c"]} today.`,
-    };
-  }
-  if (channel === "LinkedIn") {
-    return {
-      headline: `Scale ${topic} with ${client}`,
-      primaryText: `Trusted for ${topic}. See why teams choose ${client} — and book time with us.`,
-    };
-  }
-  // Meta — objective-driven
-  if (objective === "Awareness") {
-    return {
-      headline: `Meet ${client}`,
-      primaryText: `Discover ${topic} with ${client}. A better way, made simple.`,
-    };
-  }
-  if (objective === "Traffic") {
-    return {
-      headline: `Explore ${client}`,
-      primaryText: `See what ${client} has for ${topic}. Tap through to explore.`,
-    };
-  }
-  return {
-    headline: `Join ${client} today`,
-    primaryText: `Ready to start with ${topic}? ${client} makes it simple. Get going now.`,
+): Copy {
+  const t = topic;
+  const byPlatform: Record<Channel, Record<Objective, Copy>> = {
+    Meta: {
+      Awareness: {
+        headline: `Say hello to ${client}`,
+        primaryText: `Discover ${t} with ${client} — made simple, made for you.`,
+      },
+      Traffic: {
+        headline: `There's more at ${client}`,
+        primaryText: `Take a look at what ${client} does for ${t}. Tap to explore.`,
+      },
+      Conversion: {
+        headline: `Join ${client} today`,
+        primaryText: `Thousands trust ${client} for ${t}. Your turn — get started in minutes.`,
+      },
+    },
+    Google: {
+      Awareness: {
+        headline: `${client} — ${t}`,
+        primaryText: `Looking into ${t}? Meet ${client} and see what makes it different.`,
+      },
+      Traffic: {
+        headline: `${client} for ${t}`,
+        primaryText: `Comparing ${t} options? ${client} delivers — explore the range today.`,
+      },
+      Conversion: {
+        headline: `${client}: ${t}, sorted`,
+        primaryText: `Ready for ${t}? Get started with ${client} — fast, simple, reliable.`,
+      },
+    },
+    TikTok: {
+      Awareness: {
+        headline: `${client}, where've you been?`,
+        primaryText: `POV: ${t} just got way easier. consider this your sign to try ${client}.`,
+      },
+      Traffic: {
+        headline: `wait, ${client} does ${t}?`,
+        primaryText: `not me finding ${client} for ${t}… tap through, you'll get it.`,
+      },
+      Conversion: {
+        headline: `${client} — ${t}, sorted`,
+        primaryText: `why is no one talking about ${client}? get on ${t} today.`,
+      },
+    },
+    LinkedIn: {
+      Awareness: {
+        headline: `Meet ${client}`,
+        primaryText: `${client} helps teams get ${t} right. See how leaders are rethinking it.`,
+      },
+      Traffic: {
+        headline: `${client}: ${t} that scales`,
+        primaryText: `See why teams choose ${client} for ${t}. Explore the approach.`,
+      },
+      Conversion: {
+        headline: `Scale ${t} with ${client}`,
+        primaryText: `Trusted for ${t}. Book time with ${client} and see the results yourself.`,
+      },
+    },
   };
+  return byPlatform[channel][objective];
 }
 
 export function generateCreatives(
@@ -100,13 +134,7 @@ export function generateCreatives(
 
   return activeChannels.map((channel) => {
     const f = AD_FORMATS[channel];
-    const { headline, primaryText } = copyFor(
-      channel,
-      objective,
-      client,
-      topic,
-      isB2b,
-    );
+    const { headline, primaryText } = copyFor(channel, objective, client, topic);
     return {
       channel,
       headline: clamp(headline, f.headlineMax),

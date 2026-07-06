@@ -8,6 +8,7 @@ import {
   type MarketCode,
   type Objective,
 } from "@/lib/config";
+import { activeChannelsFor } from "@/lib/engine";
 import type { PlanInput } from "@/lib/types";
 import { BoltIcon, SparklesIcon } from "./icons";
 
@@ -62,6 +63,8 @@ export default function PlannerForm({
   const [excluded, setExcluded] = useState<Channel[]>([]);
 
   const currency = MARKETS[market].currency;
+  // channels the chosen objective + segment actually use (positive base weight)
+  const available = activeChannelsFor(objective, isB2b);
 
   const toggleChannel = (ch: Channel, on: boolean) =>
     setExcluded((x) => (on ? [...x, ch] : x.filter((c) => c !== ch)));
@@ -298,13 +301,22 @@ export default function PlannerForm({
           <span className="label">Channels</span>
           <div className="chips-row" role="group" aria-label="Channels">
             {CHANNELS.map((ch) => {
-              const on = !excluded.includes(ch);
+              const isAvailable = available.includes(ch);
+              const on = isAvailable && !excluded.includes(ch);
               return (
                 <button
                   key={ch}
                   type="button"
-                  className={`chip-toggle${on ? " on" : ""}`}
+                  className={`chip-toggle${on ? " on" : ""}${
+                    isAvailable ? "" : " na"
+                  }`}
                   aria-pressed={on}
+                  disabled={!isAvailable}
+                  title={
+                    isAvailable
+                      ? undefined
+                      : `${ch} isn't used for ${isB2b ? "B2B" : "B2C"} ${objective}`
+                  }
                   onClick={() => toggleChannel(ch, on)}
                 >
                   {ch}
@@ -313,8 +325,9 @@ export default function PlannerForm({
             })}
           </div>
           <p className="hint">
-            Toggle a channel off to exclude it — its budget redistributes to the
-            rest.
+            Only channels used for this objective &amp; segment are available
+            (e.g. LinkedIn is B2B-only, TikTok drops out of B2B Conversion).
+            Toggle one off to exclude it — its budget redistributes to the rest.
           </p>
         </div>
 

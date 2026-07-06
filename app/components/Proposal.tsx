@@ -287,6 +287,8 @@ export default function Proposal({ proposal }: { proposal: ProposalT }) {
     targetingSource,
   } = proposal;
 
+  const [includeCreatives, setIncludeCreatives] = useState(true);
+
   const money = (n: number) => formatMoney(n, currency);
 
   function downloadMarkdown() {
@@ -689,7 +691,7 @@ export default function Proposal({ proposal }: { proposal: ProposalT }) {
       </section>
 
       {/* Ad creative */}
-      <section className="card">
+      <section className={`card${includeCreatives ? "" : " no-print"}`}>
         <div className="card-head">
           <span className="eyebrow">{N()} — Ad creative</span>
           <h2 className="card-title">Platform-native ad mockups</h2>
@@ -755,7 +757,13 @@ export default function Proposal({ proposal }: { proposal: ProposalT }) {
 
       <div
         className="no-print"
-        style={{ marginTop: 18, display: "flex", gap: 10, flexWrap: "wrap" }}
+        style={{
+          marginTop: 18,
+          display: "flex",
+          gap: 12,
+          flexWrap: "wrap",
+          alignItems: "center",
+        }}
       >
         <button
           type="button"
@@ -771,6 +779,14 @@ export default function Proposal({ proposal }: { proposal: ProposalT }) {
         >
           <PrinterIcon size={15} /> Print / save as PDF
         </button>
+        <label className="print-opt">
+          <input
+            type="checkbox"
+            checked={includeCreatives}
+            onChange={(e) => setIncludeCreatives(e.target.checked)}
+          />
+          Include ad creative in PDF
+        </label>
       </div>
     </div>
   );
