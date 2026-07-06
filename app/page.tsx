@@ -172,7 +172,12 @@ export default function Page() {
 
       <main className="layout">
         <aside className="panel">
-          <PlannerForm key={formKey} onSubmit={generate} loading={loading} />
+          <PlannerForm
+            key={formKey}
+            onSubmit={generate}
+            loading={loading}
+            hasPlan={!!proposal}
+          />
         </aside>
 
         <div
